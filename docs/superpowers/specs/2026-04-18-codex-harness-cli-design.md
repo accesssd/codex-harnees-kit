@@ -12,6 +12,7 @@ The MVP is a workflow orchestrator, not a new agent framework. It helps a user s
 - Use the Superpowers lifecycle as the default process:
   worktree, brainstorm, plan, execute, per-task TDD, review, verify, finish.
 - Use ECC skills as domain-specific guidance and operational playbooks.
+- Default to Chinese for user-facing CLI output, generated task files, generated plans, review summaries, verification summaries, and final reports.
 - Infer the workflow by default, while allowing `--workflow` as an explicit override.
 - Make the brainstorming step produce an approved `task.md` before implementation starts.
 - Save prompts, outputs, selected skills, workflow state, and trace data for every run.
@@ -33,19 +34,19 @@ These capabilities are planned as follow-up phases after the workflow orchestrat
 The primary command starts from a raw idea:
 
 ```bash
-harnees start "login timeout leaves the page stuck"
+harnees start "登录超时后页面会卡住"
 ```
 
-The CLI infers a workflow, explains the classification, and asks the user to confirm it during the brainstorming phase. For example:
+The CLI infers a workflow, explains the classification in Chinese, and asks the user to confirm it during the brainstorming phase. For example:
 
 ```text
-Detected workflow: bugfix
+检测到的工作流：bugfix
 
-Reason:
-- The request describes broken existing behavior.
-- The expected outcome is a fix, not a new capability.
+判断原因：
+- 这个需求描述的是已有行为出错。
+- 预期结果是修复问题，而不是新增能力。
 
-Proceed with bugfix? yes/no
+是否继续使用 bugfix 工作流？yes/no
 ```
 
 If the user already has a task file:
@@ -57,7 +58,7 @@ harnees start --task tasks/fix-login-timeout.md
 If deterministic behavior is needed, `--workflow` overrides inference:
 
 ```bash
-harnees start "login timeout leaves the page stuck" --workflow bugfix
+harnees start "登录超时后页面会卡住" --workflow bugfix
 ```
 
 `--workflow` is optional. It exists for scripts, CI, and advanced users who already know which workflow they want.
@@ -112,12 +113,14 @@ MVP behavior:
 
 The task file must include:
 
-- Goal
-- Context
-- Expected behavior
-- Non-goals
-- Success criteria
-- Workflow and classification rationale
+- 目标
+- 背景
+- 预期行为
+- 非目标
+- 成功标准
+- 工作流和分类理由
+
+The default task file language is Chinese. Technical identifiers such as command names, file paths, workflow names, package names, and API names remain in their original form.
 
 ### 3. Plan
 
@@ -459,6 +462,14 @@ The harness builds each phase prompt from:
 - Stop condition
 
 The system prompt stays minimal. Long guidance lives in skill files and is loaded only when relevant.
+
+Every phase prompt must include a language instruction:
+
+```text
+默认使用中文回答、提问、总结和生成任务/计划文档。命令、代码、文件路径、包名、API 名称、workflow id、skill id 保持原文。
+```
+
+If the user writes the initial task in another language, the CLI still defaults to Chinese unless the user explicitly requests a different output language.
 
 ## Manual Gates
 
