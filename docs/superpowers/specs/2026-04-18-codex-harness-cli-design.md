@@ -1,43 +1,42 @@
-# Codex Harness CLI Design
+# Codex Harness CLI 设计
 
-## Summary
+## 概要
 
-Harnees is a local TypeScript CLI that turns Codex Agent SDK usage into a repeatable engineering workflow. It uses Superpowers as the development lifecycle, ECC as the reusable capability catalog, and Codex as the execution engine.
+Harnees 是一个本地 TypeScript CLI，用来把 Codex Agent SDK 的使用方式变成可重复执行的工程工作流。它使用 Superpowers 作为开发生命周期骨架，使用 ECC 作为可复用能力库，使用 Codex 作为执行引擎。
 
-The MVP is a workflow orchestrator, not a new agent framework. It helps a user start from a raw idea, confirm a task file through brainstorming, generate an implementation plan, execute the work with Codex, review the result, require verification evidence, and finish the branch.
+MVP 是一个工作流编排器，不是新的 agent 框架。它帮助用户从一个模糊想法开始，通过脑暴确认任务文件，生成实现计划，让 Codex 执行代码工作，审查结果，要求验证证据，并完成分支收尾。
 
-## Goals
+## 目标
 
-- Provide a local CLI for running structured Codex development workflows.
-- Use the Superpowers lifecycle as the default process:
-  worktree, brainstorm, plan, execute, per-task TDD, review, verify, finish.
-- Use ECC skills as domain-specific guidance and operational playbooks.
-- Default to Chinese for user-facing CLI output, generated task files, generated plans, review summaries, verification summaries, and final reports.
-- Infer the workflow by default, while allowing `--workflow` as an explicit override.
-- Make the brainstorming step produce an approved `task.md` before implementation starts.
-- Save prompts, outputs, selected skills, workflow state, and trace data for every run.
-- Support resuming a run from its saved state.
+- 提供一个本地 CLI，用来运行结构化的 Codex 开发工作流。
+- 使用 Superpowers 生命周期作为默认流程：`worktree`、`brainstorm`、`plan`、`execute`、per-task TDD、`review`、`verify`、`finish`。
+- 使用 ECC skills 作为领域指导和操作手册。
+- 用户可见的 CLI 输出、生成的任务文件、实现计划、审查总结、验证总结和最终报告默认使用中文。
+- 默认自动推断 workflow，同时允许用 `--workflow` 显式覆盖。
+- 在开始实现之前，必须通过脑暴阶段产出并确认 `task.md`。
+- 为每次运行保存 prompt、输出、已选择的 skills、workflow 状态和 trace 数据。
+- 支持从已保存状态恢复运行。
 
-## Non-Goals For MVP
+## MVP 非目标
 
-- Do not build a web dashboard.
-- Do not implement a full command allowlist or approval engine.
-- Do not automatically run tests, lint, or typecheck from the harness itself.
-- Do not automatically push commits or create pull requests.
-- Do not implement true concurrent multi-agent execution.
-- Do not replace Codex shell permissions or filesystem controls.
+- 不构建 Web dashboard。
+- 不实现完整的命令 allowlist 或 approval engine。
+- 不由 harness 自己自动运行 tests、lint 或 typecheck。
+- 不自动 push commit 或创建 pull request。
+- 不实现真正并发的多 agent 执行。
+- 不替代 Codex 自身的 shell 权限和文件系统控制。
 
-These capabilities are planned as follow-up phases after the workflow orchestration loop is stable.
+这些能力会作为后续阶段推进。MVP 的重点是先把工作流编排闭环跑稳定。
 
-## User Experience
+## 用户体验
 
-The primary command starts from a raw idea:
+主命令从一个原始想法开始：
 
 ```bash
 harnees start "登录超时后页面会卡住"
 ```
 
-The CLI infers a workflow, explains the classification in Chinese, and asks the user to confirm it during the brainstorming phase. For example:
+CLI 会推断 workflow，用中文解释分类原因，并在脑暴阶段让用户确认。例如：
 
 ```text
 检测到的工作流：bugfix
@@ -49,21 +48,21 @@ The CLI infers a workflow, explains the classification in Chinese, and asks the 
 是否继续使用 bugfix 工作流？yes/no
 ```
 
-If the user already has a task file:
+如果用户已经有任务文件：
 
 ```bash
 harnees start --task tasks/fix-login-timeout.md
 ```
 
-If deterministic behavior is needed, `--workflow` overrides inference:
+如果需要确定性行为，`--workflow` 可以覆盖自动推断：
 
 ```bash
 harnees start "登录超时后页面会卡住" --workflow bugfix
 ```
 
-`--workflow` is optional. It exists for scripts, CI, and advanced users who already know which workflow they want.
+`--workflow` 是可选参数。它面向脚本、CI 和已经明确知道要使用哪种 workflow 的高级用户。
 
-Supporting commands:
+辅助命令：
 
 ```bash
 harnees resume <run-id>
@@ -72,15 +71,15 @@ harnees list
 harnees step <run-id> <phase>
 ```
 
-`step` allows a user to manually advance or rerun a phase, such as:
+`step` 用来手动推进或重跑某个阶段，例如：
 
 ```bash
 harnees step 2026-04-18-001 verify
 ```
 
-## Superpowers Lifecycle
+## Superpowers 生命周期
 
-The MVP keeps the full Superpowers lifecycle visible even though some steps are manual or prompt-driven in the first version.
+MVP 会保留完整 Superpowers 生命周期概念，即使第一版中某些步骤仍然是人工确认或 prompt 驱动。
 
 ### 1. Worktree
 
@@ -88,14 +87,14 @@ Skills:
 
 - `superpowers:using-git-worktrees`
 
-MVP behavior:
+MVP 行为：
 
-- Inspect git status.
-- Warn if the worktree is dirty.
-- Recommend creating an isolated branch or worktree.
-- Record the decision in run state.
+- 检查 `git status`。
+- 如果工作区不干净，给出提醒。
+- 建议创建隔离分支或 worktree。
+- 将用户决策记录到 run state。
 
-The MVP does not automatically create a worktree unless the user explicitly requests it.
+除非用户显式要求，MVP 不会自动创建 worktree。
 
 ### 2. Brainstorm
 
@@ -103,37 +102,37 @@ Skills:
 
 - `superpowers:brainstorming`
 
-MVP behavior:
+MVP 行为：
 
-- Start from a raw idea or existing task file.
-- Infer the likely workflow unless `--workflow` is supplied.
-- Clarify the task with the user.
-- Produce a task file under `tasks/`.
-- Require user confirmation before moving to planning.
+- 从原始想法或已有任务文件开始。
+- 除非提供了 `--workflow`，否则自动推断可能的 workflow。
+- 与用户澄清任务。
+- 在 `tasks/` 下生成任务文件。
+- 进入计划阶段前要求用户确认。
 
-The task file must include:
+任务文件必须包含：
 
 - 目标
 - 背景
 - 预期行为
 - 非目标
 - 成功标准
-- 工作流和分类理由
+- workflow 和分类理由
 
-The default task file language is Chinese. Technical identifiers such as command names, file paths, workflow names, package names, and API names remain in their original form.
+任务文件默认使用中文。命令名、文件路径、workflow 名称、包名和 API 名称等技术标识保持原文。
 
 ### 3. Plan
 
 Skills:
 
 - `superpowers:writing-plans`
-- `ecc:blueprint` for larger multi-session or multi-PR work
+- 对于更大的多 session 或多 PR 工作，使用 `ecc:blueprint`
 
-MVP behavior:
+MVP 行为：
 
-- Generate an implementation plan from the confirmed task file.
-- Save the plan under `docs/superpowers/plans/`.
-- Record the plan path in run state.
+- 根据已确认的任务文件生成实现计划。
+- 将计划保存到 `docs/superpowers/plans/`。
+- 将计划路径记录到 run state。
 
 ### 4. Execute
 
@@ -141,13 +140,13 @@ Skills:
 
 - `superpowers:subagent-driven-development`
 
-MVP behavior:
+MVP 行为：
 
-- Use one Codex thread to execute the plan serially.
-- Preserve the subagent-driven-development model in the prompt and trace.
-- Record future upgrade points for planner, executor, reviewer, and verifier roles.
+- 使用一个 Codex thread 串行执行计划。
+- 在 prompt 和 trace 中保留 `subagent-driven-development` 的模型。
+- 记录未来升级为 planner、executor、reviewer、verifier 角色的扩展点。
 
-True multi-agent dispatch is deferred until a later phase.
+真正的多 agent dispatch 延后到后续阶段。
 
 ### 5. Per-Task TDD
 
@@ -156,13 +155,13 @@ Skills:
 - `superpowers:test-driven-development`
 - `ecc:tdd-workflow`
 
-MVP behavior:
+MVP 行为：
 
-- Require the agent to follow a RED, GREEN, REFACTOR loop where practical.
-- Ask for evidence that the failing test is meaningful before production changes.
-- Save any reported verification commands and outputs in the trace.
+- 要求 agent 在可行时遵循 RED、GREEN、REFACTOR 循环。
+- 在修改生产代码前，要求提供失败测试有意义的证据。
+- 将报告的验证命令和输出保存到 trace。
 
-The MVP relies on Codex to run commands inside its session. The harness records evidence but does not run test commands itself.
+MVP 依赖 Codex 在自己的 session 中运行命令。Harness 记录证据，但不自己运行测试命令。
 
 ### 6. Review
 
@@ -170,11 +169,11 @@ Skills:
 
 - `superpowers:requesting-code-review`
 
-MVP behavior:
+MVP 行为：
 
-- Ask Codex to review the implementation after execution.
-- Separate spec compliance review from code quality review.
-- Record findings and whether they are blocking.
+- 在执行完成后要求 Codex 审查实现。
+- 将 spec compliance review 和 code quality review 分开。
+- 记录发现的问题，以及它们是否阻塞继续推进。
 
 ### 7. Verify
 
@@ -183,13 +182,13 @@ Skills:
 - `superpowers:verification-before-completion`
 - `ecc:verification-loop`
 
-MVP behavior:
+MVP 行为：
 
-- Require command evidence before the run can be considered complete.
-- Ask Codex to report relevant tests, lint, typecheck, or manual verification steps.
-- Save verification output in trace files.
+- 要求有命令证据后，run 才能被视为完成。
+- 要求 Codex 报告相关 tests、lint、typecheck 或手工验证步骤。
+- 将验证输出保存到 trace 文件。
 
-The MVP does not claim success unless evidence is recorded.
+如果没有记录验证证据，MVP 不允许声称任务成功完成。
 
 ### 8. Finish
 
@@ -197,32 +196,32 @@ Skills:
 
 - `superpowers:finishing-a-development-branch`
 
-MVP behavior:
+MVP 行为：
 
-- Summarize changed files, evidence, and remaining risks.
-- Suggest commit, pull request, or cleanup next steps.
-- Do not push or create a pull request automatically.
+- 总结变更文件、验证证据和剩余风险。
+- 建议 commit、pull request 或 cleanup 后续动作。
+- 不自动 push，也不自动创建 pull request。
 
-## Workflows
+## Workflow 配置
 
-A workflow is a named configuration that tunes the lifecycle for a task type. Workflows are inferred by default and can be overridden with `--workflow`.
+Workflow 是一个具名配置，用来针对不同任务类型调整生命周期。默认自动推断 workflow，也可以用 `--workflow` 覆盖。
 
-Initial workflows:
+初始 workflows：
 
 - `bugfix`
 - `feature`
 - `review`
 - `ci-failure`
 
-Each workflow defines:
+每个 workflow 定义：
 
-- Phase order
-- Skills loaded per phase
-- Phase objective
-- Stop condition
-- Manual confirmation gates
+- 阶段顺序
+- 每个阶段加载的 skills
+- 阶段目标
+- 停止条件
+- 人工确认 gate
 
-Example:
+示例：
 
 ```yaml
 name: bugfix
@@ -266,7 +265,7 @@ phases:
     objective: Prepare final summary and branch completion guidance.
 ```
 
-## Project Structure
+## 项目结构
 
 ```text
 codex-harnees-kit/
@@ -310,13 +309,13 @@ codex-harnees-kit/
       plans/
 ```
 
-## Module Responsibilities
+## 模块职责
 
 ### CLI
 
-`src/cli.ts` parses user commands and delegates to the workflow engine.
+`src/cli.ts` 解析用户命令，并委托给 workflow engine。
 
-Supported MVP commands:
+MVP 支持的命令：
 
 - `start`
 - `resume`
@@ -324,61 +323,61 @@ Supported MVP commands:
 - `list`
 - `step`
 
-### Workflow Engine
+### Workflow Engine（工作流引擎）
 
-`src/workflow-engine.ts` loads workflow YAML, determines the current phase, loads phase skills, builds prompts, calls Codex, and advances run state.
+`src/workflow-engine.ts` 加载 workflow YAML，判断当前阶段，加载阶段 skills，构造 prompts，调用 Codex，并推进 run state。
 
-### Workflow Inference
+### Workflow Inference（工作流推断）
 
-`src/workflow-inference.ts` classifies raw ideas or task files into a likely workflow.
+`src/workflow-inference.ts` 将原始想法或任务文件分类到最可能的 workflow。
 
-The inference result includes:
+推断结果包含：
 
-- Workflow name
-- Confidence
-- Rationale
-- Whether confirmation is required
+- Workflow 名称
+- 置信度
+- 判断理由
+- 是否需要用户确认
 
-If `--workflow` is provided, inference is skipped and the workflow source is recorded as `explicit`.
+如果提供了 `--workflow`，则跳过推断，并将 workflow source 记录为 `explicit`。
 
-### Skill Registry
+### Skill Registry（Skill 注册表）
 
-`src/skill-registry.ts` maps skill names to local `SKILL.md` files.
+`src/skill-registry.ts` 将 skill 名称映射到本地 `SKILL.md` 文件。
 
-The MVP registry covers only the skills used by the initial workflows. Additional ECC skills can be added later as workflow coverage grows.
+MVP registry 只覆盖初始 workflows 使用的 skills。随着 workflow 覆盖范围扩大，可以继续加入更多 ECC skills。
 
-### Skill Loader
+### Skill Loader（Skill 加载器）
 
-`src/skill-loader.ts` loads skill content for the active phase only. It avoids loading every Superpowers or ECC document into every prompt.
+`src/skill-loader.ts` 只加载当前阶段需要的 skill 内容，避免把所有 Superpowers 或 ECC 文档塞进每个 prompt。
 
-### Context Builder
+### Context Builder（上下文构建器）
 
-`src/context-builder.ts` collects lightweight project context:
+`src/context-builder.ts` 收集轻量项目上下文：
 
-- Current working directory
-- Git status
-- README when present
-- Package metadata when present
-- Existing task file content
-- Current run state
+- 当前工作目录
+- Git 状态
+- 存在时读取 README
+- 存在时读取 package metadata
+- 已有任务文件内容
+- 当前 run state
 
-### Codex Thread Adapter
+### Codex Thread Adapter（Codex Thread 适配器）
 
-`src/codex-thread.ts` wraps Codex SDK thread creation, execution, and resume behavior.
+`src/codex-thread.ts` 封装 Codex SDK thread 创建、执行和恢复行为。
 
-### Trace Store
+### Trace Store（Trace 存储）
 
-`src/trace-store.ts` saves prompts, outputs, selected skills, phase metadata, and run summaries under `.harnees/runs/<run-id>/`.
+`src/trace-store.ts` 将 prompts、输出、已选择的 skills、阶段元数据和 run summaries 保存到 `.harnees/runs/<run-id>/`。
 
-### Task Store
+### Task Store（任务状态存储）
 
-`src/task-store.ts` creates and updates `state.json` for each run.
+`src/task-store.ts` 为每个 run 创建和更新 `state.json`。
 
-## Run Artifacts
+## 运行产物
 
-Every run writes artifacts under `.harnees/runs/<run-id>/`.
+每次运行都会在 `.harnees/runs/<run-id>/` 下写入产物。
 
-Example:
+示例：
 
 ```text
 .harnees/
@@ -402,7 +401,7 @@ Example:
       finish.output.md
 ```
 
-Generated task and plan files:
+生成的任务和计划文件：
 
 ```text
 tasks/
@@ -414,7 +413,7 @@ docs/
       2026-04-18-001-plan.md
 ```
 
-Example `state.json`:
+`state.json` 示例：
 
 ```json
 {
@@ -431,7 +430,7 @@ Example `state.json`:
 }
 ```
 
-Example `trace.json`:
+`trace.json` 示例：
 
 ```json
 {
@@ -449,100 +448,100 @@ Example `trace.json`:
 }
 ```
 
-## Prompt Composition
+## Prompt 组装
 
-The harness builds each phase prompt from:
+Harness 会从以下内容组装每个阶段的 prompt：
 
-- A short invariant controller prompt
-- Workflow phase objective
-- Active skill content
-- Project context
-- Task file or raw idea
-- Current run state
-- Stop condition
+- 简短、稳定的 controller prompt
+- Workflow 阶段目标
+- 当前阶段的 skill 内容
+- 项目上下文
+- 任务文件或原始想法
+- 当前 run state
+- 停止条件
 
-The system prompt stays minimal. Long guidance lives in skill files and is loaded only when relevant.
+System prompt 保持最小。长指导内容保存在 skill 文件中，只在相关阶段加载。
 
-Every phase prompt must include a language instruction:
+每个阶段的 prompt 都必须包含语言要求：
 
 ```text
 默认使用中文回答、提问、总结和生成任务/计划文档。命令、代码、文件路径、包名、API 名称、workflow id、skill id 保持原文。
 ```
 
-If the user writes the initial task in another language, the CLI still defaults to Chinese unless the user explicitly requests a different output language.
+如果用户用其他语言写初始任务，CLI 仍然默认使用中文，除非用户显式要求使用其他输出语言。
 
-## Manual Gates
+## 人工 Gate
 
-The MVP uses manual gates for important decisions:
+MVP 在重要决策点使用人工 gate：
 
-- Confirm inferred workflow.
-- Approve generated `task.md`.
-- Approve generated implementation plan.
-- Continue after blocking review findings.
-- Finish after verification evidence is recorded.
+- 确认推断出的 workflow。
+- 确认生成的 `task.md`。
+- 确认生成的实现计划。
+- 在存在阻塞性 review findings 时决定是否继续。
+- 在记录验证证据后确认是否 finish。
 
-The CLI records the gate state and tells the user how to continue with `harnees resume <run-id>`.
+CLI 会记录 gate 状态，并提示用户如何用 `harnees resume <run-id>` 继续。
 
-## Error Handling
+## 错误处理
 
-Each phase should return a structured result:
+每个阶段都应该返回结构化结果：
 
-- Status: `completed`, `waiting_for_user`, `blocked`, or `failed`
-- Summary
+- Status：`completed`、`waiting_for_user`、`blocked` 或 `failed`
+- 摘要
 - Next action
 - Artifact paths
 
-On failure, the harness records the error and keeps the run resumable. It does not discard trace data.
+失败时，harness 会记录错误，并保持 run 可恢复。它不会丢弃 trace 数据。
 
-## Backlog
+## 后续路线图
 
-### Phase 2: Semi-Automatic Verification
+### Phase 2：半自动验证
 
-- Detect package manager and project type.
-- Run test, lint, and typecheck commands from the harness.
-- Feed failures back into the same Codex thread.
-- Add `harnees verify`.
+- 检测 package manager 和项目类型。
+- 由 harness 运行 test、lint 和 typecheck 命令。
+- 将失败输出反馈给同一个 Codex thread。
+- 增加 `harnees verify`。
 
-### Phase 3: Policy Engine
+### Phase 3：Policy Engine
 
-- Command allowlist.
-- Destructive command approval.
-- Protected file checks.
-- Network and dependency install approval.
+- Command allowlist。
+- Destructive command approval。
+- Protected file checks。
+- Network 和 dependency install approval。
 
-### Phase 4: Real Subagent Execution
+### Phase 4：真实 Subagent 执行
 
-- Split planner, executor, reviewer, and verifier roles.
-- Run spec compliance review before code quality review.
-- Keep execution serial first, then add safe parallelism for disjoint work.
+- 拆分 planner、executor、reviewer 和 verifier 角色。
+- 先运行 spec compliance review，再运行 code quality review。
+- 先保持串行执行，再为互不冲突的工作增加安全并行。
 
-### Phase 5: GitHub Integration
+### Phase 5：GitHub 集成
 
-- Start runs from GitHub issues.
-- Read pull request and CI state.
-- Generate pull request descriptions.
-- Query PR checks.
+- 从 GitHub issues 启动 runs。
+- 读取 pull request 和 CI 状态。
+- 生成 pull request description。
+- 查询 PR checks。
 
-### Phase 6: Eval And Dashboard
+### Phase 6：Eval 和 Dashboard
 
-- Track pass rate.
-- Track retry count.
-- Track verification success rate.
-- Support task replay from traces.
-- Add a small local dashboard only after trace quality is stable.
+- 跟踪 pass rate。
+- 跟踪 retry count。
+- 跟踪 verification success rate。
+- 支持从 traces 回放 task。
+- 只有在 trace 质量稳定后，再增加小型本地 dashboard。
 
-## MVP Decisions
+## MVP 决策
 
-- Local run state uses `.harnees/`.
-- Generated task and plan files are normal project artifacts. They are not committed automatically by the MVP.
-- The first implementation targets the Codex SDK directly. If the SDK is unavailable during implementation, the CLI should fail with a clear setup message rather than silently shelling out to another interface.
+- 本地运行状态使用 `.harnees/`。
+- 生成的任务和计划文件是普通项目产物。MVP 不会自动提交它们。
+- 第一版实现直接面向 Codex SDK。如果实现时本地缺少 SDK，CLI 应该给出明确的 setup message，而不是静默切换为 shell 调用其他接口。
 
-## Approval Criteria
+## 进入实现计划的批准标准
 
-The design is ready for implementation planning when:
+当以下条件满足时，本设计可以进入 implementation planning：
 
-- The user accepts the Superpowers lifecycle as the primary workflow.
-- The user accepts TypeScript and Node.js as the implementation stack.
-- The user accepts workflow inference with optional `--workflow` override.
-- The user accepts that MVP verification is prompt-driven and trace-recorded, not harness-executed.
-- The user accepts the backlog order for follow-up automation.
+- 用户接受 Superpowers 生命周期作为主工作流。
+- 用户接受 TypeScript 和 Node.js 作为实现栈。
+- 用户接受 workflow 自动推断，并允许用 `--workflow` 可选覆盖。
+- 用户接受 MVP 的验证是 prompt 驱动并记录到 trace，而不是由 harness 自己执行。
+- 用户接受后续自动化 backlog 的推进顺序。
