@@ -1,0 +1,12 @@
+{
+  "superpowers:using-git-worktrees": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/using-git-worktrees/SKILL.md",
+  "superpowers:brainstorming": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/brainstorming/SKILL.md",
+  "superpowers:writing-plans": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/writing-plans/SKILL.md",
+  "superpowers:subagent-driven-development": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/subagent-driven-development/SKILL.md",
+  "superpowers:test-driven-development": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/test-driven-development/SKILL.md",
+  "superpowers:requesting-code-review": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/requesting-code-review/SKILL.md",
+  "superpowers:verification-before-completion": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/verification-before-completion/SKILL.md",
+  "superpowers:finishing-a-development-branch": "C:/Users/Admin/.codex/plugins/cache/openai-curated/superpowers/b1986b3d3da5bb8a04d3cb1e69af5a29bb5c2c04/skills/finishing-a-development-branch/SKILL.md",
+  "ecc:tdd-workflow": "C:/Users/Admin/.codex/plugins/cache/ecc/ecc/1.10.0/skills/tdd-workflow/SKILL.md",
+  "ecc:verification-loop": "C:/Users/Admin/.codex/plugins/cache/ecc/ecc/1.10.0/skills/verification-loop/SKILL.md"
+}
