@@ -1,0 +1,35 @@
+name: ci-failure
+phases:
+  - id: worktree
+    skills:
+      - superpowers:using-git-worktrees
+    objective: 检查隔离分支或 worktree 状态。
+  - id: brainstorm
+    skills:
+      - superpowers:brainstorming
+    objective: 澄清 CI 失败现象并生成 task.md。
+    requiresConfirmation: true
+  - id: plan
+    skills:
+      - superpowers:writing-plans
+    objective: 根据 task.md 生成实现计划。
+    requiresConfirmation: true
+  - id: execute
+    skills:
+      - superpowers:subagent-driven-development
+      - superpowers:test-driven-development
+      - ecc:tdd-workflow
+    objective: 用 TDD 证据实现最小正确修复。
+  - id: review
+    skills:
+      - superpowers:requesting-code-review
+    objective: 做 spec compliance 和 code quality review。
+  - id: verify
+    skills:
+      - superpowers:verification-before-completion
+      - ecc:verification-loop
+    objective: 要求完成前验证证据。
+  - id: finish
+    skills:
+      - superpowers:finishing-a-development-branch
+    objective: 汇总证据、风险和分支收尾建议。
