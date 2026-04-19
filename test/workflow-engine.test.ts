@@ -59,7 +59,7 @@ async function writeTempProject(cwd: string): Promise<void> {
 
 describe("workflow-engine", () => {
   it("runs a phase, persists artifacts, and updates run state", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-engine-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-engine-"));
     await writeTempProject(tempDir);
 
     const codexCalls: Array<{ prompt: string; threadId?: string }> = [];
@@ -107,7 +107,7 @@ describe("workflow-engine", () => {
     );
 
     await expect(
-      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "state.json"))
+      readJsonFile(join(tempDir, ".harness", "runs", "run-123", "state.json"))
     ).resolves.toMatchObject({
       runId: "run-123",
       status: "completed",
@@ -118,7 +118,7 @@ describe("workflow-engine", () => {
       taskFile: "tasks/run-123-task.md"
     });
     await expect(
-      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "trace.json"))
+      readJsonFile(join(tempDir, ".harness", "runs", "run-123", "trace.json"))
     ).resolves.toEqual({
       runId: "run-123",
       phases: [
@@ -134,7 +134,7 @@ describe("workflow-engine", () => {
   });
 
   it("persists failed phase state, trace, and artifact when Codex rejects", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-engine-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-engine-"));
     await writeTempProject(tempDir);
 
     const codex = {
@@ -166,14 +166,14 @@ describe("workflow-engine", () => {
     await expect(readTextFile(join(tempDir, outputPath!))).resolves.toContain("boom");
 
     await expect(
-      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "state.json"))
+      readJsonFile(join(tempDir, ".harness", "runs", "run-123", "state.json"))
     ).resolves.toMatchObject({
       runId: "run-123",
       status: "failed",
       currentPhase: "brainstorm"
     });
     await expect(
-      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "trace.json"))
+      readJsonFile(join(tempDir, ".harness", "runs", "run-123", "trace.json"))
     ).resolves.toEqual({
       runId: "run-123",
       phases: [
@@ -189,7 +189,7 @@ describe("workflow-engine", () => {
   });
 
   it("keeps separate artifacts when the same phase is rerun", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-engine-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-engine-"));
     await writeTempProject(tempDir);
 
     let count = 0;
@@ -231,7 +231,7 @@ describe("workflow-engine", () => {
     await expect(readTextFile(join(tempDir, firstOutputPath!))).resolves.toBe("Brainstorm output 1.");
     await expect(readTextFile(join(tempDir, secondOutputPath!))).resolves.toBe("Brainstorm output 2.");
     await expect(
-      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "trace.json"))
+      readJsonFile(join(tempDir, ".harness", "runs", "run-123", "trace.json"))
     ).resolves.toMatchObject({
       phases: [
         { outputPath: firstOutputPath, status: "completed" },

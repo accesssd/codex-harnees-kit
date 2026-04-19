@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 构建 Harnees 的本地 TypeScript CLI MVP，让用户可以从中文 raw idea 启动 Superpowers 生命周期工作流，生成/保存 run state、trace、prompt 和输出，并支持 `start`、`resume`、`status`、`list`、`step` 命令。
+**Goal:** 构建 Harness 的本地 TypeScript CLI MVP，让用户可以从中文 raw idea 启动 Superpowers 生命周期工作流，生成/保存 run state、trace、prompt 和输出，并支持 `start`、`resume`、`status`、`list`、`step` 命令。
 
-**Architecture:** 采用轻量分层：CLI 只解析命令，workflow engine 负责编排阶段，stores 负责 `.harnees/runs/<run-id>/` 文件状态，skill loader 和 context builder 负责组装 prompt，Codex adapter 封装 SDK 调用并保持可测试。MVP 不实现自动测试 runner、policy engine、GitHub 集成或真正多 agent 并发。
+**Architecture:** 采用轻量分层：CLI 只解析命令，workflow engine 负责编排阶段，stores 负责 `.harness/runs/<run-id>/` 文件状态，skill loader 和 context builder 负责组装 prompt，Codex adapter 封装 SDK 调用并保持可测试。MVP 不实现自动测试 runner、policy engine、GitHub 集成或真正多 agent 并发。
 
 **Tech Stack:** Node.js 18+、TypeScript、Commander、YAML、Zod、Vitest、tsx、`@openai/codex-sdk`。
 
@@ -70,7 +70,7 @@ tasks/
 - `src/skill-loader.ts`：按 skill id 读取本地 `SKILL.md`。
 - `src/context-builder.ts`：收集 git、README、package metadata、task/run state。
 - `src/prompt-builder.ts`：组装阶段 prompt，强制中文默认输出要求。
-- `src/task-store.ts`：管理 `.harnees/runs/<run-id>/state.json`。
+- `src/task-store.ts`：管理 `.harness/runs/<run-id>/state.json`。
 - `src/trace-store.ts`：写入 prompt、output 和 `trace.json`。
 - `src/codex-thread.ts`：封装 Codex SDK，可被测试替身替换。
 - `src/workflow-engine.ts`：串联 workflow、context、skills、prompt、Codex 和 stores。
@@ -93,11 +93,11 @@ tasks/
 
 ```json
 {
-  "name": "codex-harnees-kit",
+  "name": "codex-harness-kit",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "harnees": "./dist/cli.js"
+    "harness": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -157,9 +157,9 @@ export default defineConfig({
 `README.md`：
 
 ```md
-# codex-harnees-kit
+# codex-harness-kit
 
-Harnees 是一个本地 Codex workflow harness。MVP 使用 TypeScript CLI 编排 Superpowers 生命周期，并按需加载 ECC skills。
+Harness 是一个本地 Codex workflow harness。MVP 使用 TypeScript CLI 编排 Superpowers 生命周期，并按需加载 ECC skills。
 
 ## MVP 命令
 
@@ -240,7 +240,7 @@ afterEach(async () => {
 
 describe("fs-utils", () => {
   it("writes parent directories before JSON content", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-"));
     const filePath = join(tempDir, "nested", "state.json");
 
     await writeJsonFile(filePath, { status: "created" });
@@ -718,7 +718,7 @@ afterEach(async () => {
 
 describe("skill-loader", () => {
   it("loads skill markdown by id", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-skills-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-skills-"));
     const skillPath = join(tempDir, "brainstorming", "SKILL.md");
     await mkdir(join(tempDir, "brainstorming"), { recursive: true });
     await writeFile(skillPath, "# Brainstorming\n\nUse before coding.\n", "utf8");
@@ -838,8 +838,8 @@ git commit -m "feat: load workflow skills from registry"
 import { createRunState, loadRunState, saveRunState } from "../src/task-store.js";
 
 describe("task-store", () => {
-  it("creates and persists run state under .harnees/runs", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-state-"));
+  it("creates and persists run state under .harness/runs", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "harness-state-"));
 
     const state = await createRunState(tempDir, {
       runId: "2026-04-18-001",
@@ -879,18 +879,18 @@ afterEach(async () => {
 
 describe("trace-store", () => {
   it("writes phase artifacts and trace metadata", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-trace-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-trace-"));
 
     const promptPath = await writePhaseArtifact(tempDir, "2026-04-18-001", "brainstorm", "prompt", "你好");
     await appendTracePhase(tempDir, "2026-04-18-001", {
       id: "brainstorm",
       skills: ["superpowers:brainstorming"],
       promptPath,
-      outputPath: ".harnees/runs/2026-04-18-001/brainstorm.output.md",
+      outputPath: ".harness/runs/2026-04-18-001/brainstorm.output.md",
       status: "completed"
     });
 
-    expect(promptPath).toBe(".harnees/runs/2026-04-18-001/brainstorm.prompt.md");
+    expect(promptPath).toBe(".harness/runs/2026-04-18-001/brainstorm.prompt.md");
   });
 });
 ```
@@ -915,7 +915,7 @@ import { RunState, RunStateSchema, WorkflowName } from "./domain.js";
 import { readJsonFile, writeJsonFile } from "./fs-utils.js";
 
 export function runDir(cwd: string, runId: string): string {
-  return join(cwd, ".harnees", "runs", runId);
+  return join(cwd, ".harness", "runs", runId);
 }
 
 export function statePath(cwd: string, runId: string): string {
@@ -972,7 +972,7 @@ export type Trace = {
 };
 
 export function relativeArtifactPath(runId: string, phase: PhaseId, kind: "prompt" | "output"): string {
-  return `.harnees/runs/${runId}/${phase}.${kind}.md`;
+  return `.harness/runs/${runId}/${phase}.${kind}.md`;
 }
 
 export async function writePhaseArtifact(
@@ -1042,7 +1042,7 @@ import { buildPhasePrompt } from "../src/prompt-builder.js";
 describe("prompt-builder", () => {
   it("includes Chinese language rule and phase skills", () => {
     const prompt = buildPhasePrompt({
-      controllerPrompt: "你是 Harnees controller。",
+      controllerPrompt: "你是 Harness controller。",
       phaseTemplate: "阶段：{{phaseId}}\n目标：{{objective}}",
       phaseId: "brainstorm",
       objective: "澄清任务",
@@ -1079,7 +1079,7 @@ afterEach(async () => {
 
 describe("context-builder", () => {
   it("includes README and package metadata when present", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-context-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-context-"));
     await writeFile(join(tempDir, "README.md"), "# Demo\n", "utf8");
     await writeFile(join(tempDir, "package.json"), JSON.stringify({ name: "demo" }), "utf8");
 
@@ -1106,7 +1106,7 @@ Expected: FAIL，缺少 builder 模块。
 `prompts/controller.md`：
 
 ```md
-你是 Harnees workflow harness 的 Codex 执行代理。
+你是 Harness workflow harness 的 Codex 执行代理。
 
 你必须遵守当前 phase 的目标和停止条件。
 默认使用中文回答、提问、总结和生成任务/计划文档。
@@ -1248,7 +1248,7 @@ afterEach(async () => {
 
 describe("workflow-engine", () => {
   it("runs one phase and records output", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-engine-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-engine-"));
     await mkdir(join(tempDir, "workflows"), { recursive: true });
     await mkdir(join(tempDir, "config"), { recursive: true });
     await mkdir(join(tempDir, "prompts"), { recursive: true });
@@ -1424,7 +1424,7 @@ export async function runPhase(input: RunPhaseInput): Promise<PhaseResult> {
   return {
     status: "completed",
     summary: codexResult.output,
-    nextAction: phase.requiresConfirmation ? `请确认后运行 harnees resume ${input.runId}` : "可以进入下一阶段。",
+    nextAction: phase.requiresConfirmation ? `请确认后运行 harness resume ${input.runId}` : "可以进入下一阶段。",
     artifacts: [promptPath, outputPath]
   };
 }
@@ -1480,7 +1480,7 @@ function createRunId(): string {
 
 const program = new Command();
 
-program.name("harnees").description("Codex workflow harness").version("0.1.0");
+program.name("harness").description("Codex workflow harness").version("0.1.0");
 
 program
   .command("start")
@@ -1525,7 +1525,7 @@ program.command("status").argument("<run-id>").action(async (runId: string) => {
 });
 
 program.command("list").action(async () => {
-  const runsDir = join(process.cwd(), ".harnees", "runs");
+  const runsDir = join(process.cwd(), ".harness", "runs");
   const entries = await readdir(runsDir, { withFileTypes: true }).catch(() => []);
   for (const entry of entries) {
     if (entry.isDirectory()) {
@@ -1584,13 +1584,13 @@ Run:
 npm run dev -- list
 ```
 
-Expected: exit code 0，若还没有 `.harnees/runs`，输出为空。
+Expected: exit code 0，若还没有 `.harness/runs`，输出为空。
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add src/cli.ts package.json
-git commit -m "feat: add harnees cli commands"
+git commit -m "feat: add harness cli commands"
 ```
 
 ---
@@ -1607,7 +1607,7 @@ git commit -m "feat: add harnees cli commands"
 ```md
 ## 工作流
 
-MVP 默认从 `brainstorm` 阶段开始，让用户先确认 `task.md`。`--workflow` 不是必填项；未提供时，Harnees 会根据任务内容自动推断 workflow，并用中文解释判断原因。
+MVP 默认从 `brainstorm` 阶段开始，让用户先确认 `task.md`。`--workflow` 不是必填项；未提供时，Harness 会根据任务内容自动推断 workflow，并用中文解释判断原因。
 
 ## 设计文档
 

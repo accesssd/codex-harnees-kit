@@ -15,7 +15,7 @@ afterEach(async () => {
 
 describe("skill-loader", () => {
   it("loads skill markdown by id", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-skills-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-skills-"));
     const skillPath = join(tempDir, "brainstorming", "SKILL.md");
     await mkdir(join(tempDir, "brainstorming"), { recursive: true });
     await writeFile(skillPath, "# Brainstorming\n\nUse before coding.\n", "utf8");

@@ -30,7 +30,7 @@ function resolveFromCwd(cwd: string, path: string): string {
 
 function parseRunId(runId: string): string {
   if (!RUN_ID_PATTERN.test(runId)) {
-    throw new Error("run id 格式无效。请使用 harnees list 查看可用 run id。");
+    throw new Error("run id 格式无效。请使用 harness list 查看可用 run id。");
   }
   return runId;
 }
@@ -55,7 +55,7 @@ async function readTaskInput(cwd: string, idea: string | undefined, taskPath: st
 }
 
 async function listRunIds(cwd: string): Promise<string[]> {
-  const runsDir = join(cwd, ".harnees", "runs");
+  const runsDir = join(cwd, ".harness", "runs");
   try {
     const entries = await readdir(runsDir, { withFileTypes: true });
     return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
@@ -69,7 +69,7 @@ async function listRunIds(cwd: string): Promise<string[]> {
 
 const program = new Command();
 
-program.name("harnees").description("Codex workflow harness").version("0.1.0");
+program.name("harness").description("Codex workflow harness").version("0.1.0");
 
 program
   .command("start")
@@ -129,7 +129,7 @@ program
 
     console.log(`当前阶段：${state.currentPhase}`);
     console.log(`状态：${state.status}`);
-    console.log(`提示：MVP resume 只读取状态，不会自动推进。请确认后运行 harnees step ${parsedRunId} <phase>。`);
+    console.log(`提示：MVP resume 只读取状态，不会自动推进。请确认后运行 harness step ${parsedRunId} <phase>。`);
   });
 
 program

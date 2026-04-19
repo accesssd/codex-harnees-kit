@@ -1,6 +1,6 @@
-# codex-harnees-kit
+# codex-harness-kit
 
-Harnees 是一个本地 Codex workflow harness。MVP 使用 TypeScript CLI 编排 Superpowers 生命周期，并按需加载 ECC skills。
+Harness 是一个本地 Codex workflow harness。MVP 使用 TypeScript CLI 编排 Superpowers 生命周期，并按需加载 ECC skills。
 
 ## MVP 命令
 
@@ -14,7 +14,7 @@ npm run dev -- step <run-id> verify
 
 ## 工作流
 
-MVP 默认从 `brainstorm` 阶段开始，让用户先确认 `task.md`。`--workflow` 不是必填项；未提供时，Harnees 会根据任务内容自动推断 workflow，并用中文解释判断原因。
+MVP 默认从 `brainstorm` 阶段开始，让用户先确认 `task.md`。`--workflow` 不是必填项；未提供时，Harness 会根据任务内容自动推断 workflow，并用中文解释判断原因。
 
 ## 设计文档
 

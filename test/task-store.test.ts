@@ -16,7 +16,7 @@ afterEach(async () => {
 
 describe("fs-utils", () => {
   it("writes parent directories before JSON content", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-"));
     const filePath = join(tempDir, "nested", "state.json");
 
     await writeJsonFile(filePath, { status: "created" });
@@ -27,7 +27,7 @@ describe("fs-utils", () => {
 
 describe("task-store", () => {
   it("creates, saves, and loads run state from the run state path", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-state-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-state-"));
 
     const created = await createRunState(tempDir, {
       runId: "2026-04-18-001",
@@ -45,7 +45,7 @@ describe("task-store", () => {
     expect(Date.parse(created.createdAt)).not.toBeNaN();
     expect(Date.parse(created.updatedAt)).not.toBeNaN();
 
-    const filePath = join(tempDir, ".harnees", "runs", "2026-04-18-001", "state.json");
+    const filePath = join(tempDir, ".harness", "runs", "2026-04-18-001", "state.json");
     await expect(readJsonFile(filePath)).resolves.toMatchObject({
       runId: "2026-04-18-001",
       status: "created"

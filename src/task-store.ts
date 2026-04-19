@@ -9,7 +9,7 @@ export type CreateRunStateInput = {
 };
 
 export function runDir(cwd: string, runId: string): string {
-  return join(cwd, ".harnees", "runs", runId);
+  return join(cwd, ".harness", "runs", runId);
 }
 
 export function statePath(cwd: string, runId: string): string {

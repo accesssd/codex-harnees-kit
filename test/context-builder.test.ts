@@ -15,7 +15,7 @@ afterEach(async () => {
 
 describe("context-builder", () => {
   it("includes README.md and package.json contents when they exist", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-context-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-context-"));
     await writeFile(join(tempDir, "README.md"), "# Test Project\n", "utf8");
     await writeFile(join(tempDir, "package.json"), '{"name":"test-project"}\n', "utf8");
 
@@ -29,7 +29,7 @@ describe("context-builder", () => {
   });
 
   it("truncates oversized context sources", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-context-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-context-"));
     await writeFile(join(tempDir, "README.md"), "a".repeat(4100), "utf8");
 
     const context = await buildProjectContext(tempDir);
@@ -39,7 +39,7 @@ describe("context-builder", () => {
   });
 
   it("includes task file and run state when provided", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-context-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-context-"));
     await mkdir(join(tempDir, "tasks"), { recursive: true });
     await writeFile(join(tempDir, "tasks", "run-task.md"), "# Task\n\nClarify the redirect bug.\n", "utf8");
 

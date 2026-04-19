@@ -18,7 +18,7 @@ export type Trace = {
 };
 
 function tracePath(cwd: string, runId: string): string {
-  return join(cwd, ".harnees", "runs", runId, "trace.json");
+  return join(cwd, ".harness", "runs", runId, "trace.json");
 }
 
 export function relativeArtifactPath(
@@ -28,7 +28,7 @@ export function relativeArtifactPath(
   attemptId?: string
 ): string {
   const suffix = attemptId ? `.${attemptId}` : "";
-  return `.harnees/runs/${runId}/${phase}${suffix}.${kind}.md`;
+  return `.harness/runs/${runId}/${phase}${suffix}.${kind}.md`;
 }
 
 export async function writePhaseArtifact(

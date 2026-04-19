@@ -1,9 +1,9 @@
 {
-  "name": "codex-harnees-kit",
+  "name": "codex-harness-kit",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "harnees": "./dist/cli.js"
+    "harness": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

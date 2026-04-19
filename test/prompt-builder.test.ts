@@ -8,7 +8,7 @@ const phaseTemplate = readFileSync(join(process.cwd(), "prompts", "phase.md"), "
 describe("prompt-builder", () => {
   it("builds a phase prompt with Chinese rules, replaced placeholders, and skill details", () => {
     const prompt = buildPhasePrompt({
-      controllerPrompt: "你是 Harnees controller。",
+      controllerPrompt: "你是 Harness controller。",
       phaseTemplate,
       phaseId: "execute",
       objective: "Implement context builder",
@@ -39,7 +39,7 @@ describe("prompt-builder", () => {
 
   it("breaks markdown fences inside untrusted prompt data", () => {
     const prompt = buildPhasePrompt({
-      controllerPrompt: "你是 Harnees controller。",
+      controllerPrompt: "你是 Harness controller。",
       phaseTemplate,
       phaseId: "brainstorm",
       objective: "Clarify task",

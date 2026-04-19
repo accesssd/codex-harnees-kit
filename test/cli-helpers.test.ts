@@ -15,7 +15,7 @@ afterEach(async () => {
 
 describe("cli-helpers", () => {
   it("builds step input from both task and plan artifacts", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "harnees-cli-"));
+    tempDir = await mkdtemp(join(tmpdir(), "harness-cli-"));
     await mkdir(join(tempDir, "tasks"), { recursive: true });
     await mkdir(join(tempDir, "docs", "superpowers", "plans"), { recursive: true });
     await writeFile(join(tempDir, "tasks", "run-123-task.md"), "# Task\n\nConfirm task details.\n", "utf8");
