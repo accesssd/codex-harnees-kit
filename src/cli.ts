@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { Command } from "commander";
 import { ZodError } from "zod";
+import { buildStepTaskInput } from "./cli-helpers.js";
 import { CodexSdkRunner } from "./codex-thread.js";
 import { PhaseIdSchema, WorkflowNameSchema } from "./domain.js";
 import { readTextFile } from "./fs-utils.js";
@@ -140,7 +141,7 @@ program
     const parsedRunId = parseRunId(runId);
     const state = await loadRunState(cwd, parsedRunId);
     const phaseId = PhaseIdSchema.parse(phase);
-    const taskInput = state.taskFile ? await readTextFile(resolveFromCwd(cwd, state.taskFile)) : "";
+    const taskInput = await buildStepTaskInput(cwd, state);
     const result = await runPhase({
       cwd,
       runId: parsedRunId,

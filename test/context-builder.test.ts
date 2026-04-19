@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -36,5 +36,31 @@ describe("context-builder", () => {
 
     expect(context).toContain("[truncated]");
     expect(context).not.toContain("a".repeat(4100));
+  });
+
+  it("includes task file and run state when provided", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "harnees-context-"));
+    await mkdir(join(tempDir, "tasks"), { recursive: true });
+    await writeFile(join(tempDir, "tasks", "run-task.md"), "# Task\n\nClarify the redirect bug.\n", "utf8");
+
+    const context = await buildProjectContext(tempDir, {
+      taskFile: "tasks/run-task.md",
+      runState: {
+        runId: "run-123",
+        status: "completed",
+        workflow: "bugfix",
+        workflowSource: "inferred",
+        currentPhase: "brainstorm",
+        taskFile: "tasks/run-task.md",
+        planFile: "docs/superpowers/plans/run-123-plan.md",
+        createdAt: "2026-04-19T00:00:00.000Z",
+        updatedAt: "2026-04-19T00:00:00.000Z"
+      }
+    });
+
+    expect(context).toContain("task file:");
+    expect(context).toContain("Clarify the redirect bug.");
+    expect(context).toContain("run state:");
+    expect(context).toContain("\"planFile\": \"docs/superpowers/plans/run-123-plan.md\"");
   });
 });

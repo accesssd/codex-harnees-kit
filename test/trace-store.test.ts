@@ -30,7 +30,7 @@ describe("trace-store", () => {
     await expect(readTextFile(join(tempDir, relativePath))).resolves.toBe("# Prompt\n");
   });
 
-  it("creates trace json and replaces duplicate phase records", async () => {
+  it("creates trace json and preserves duplicate phase records", async () => {
     tempDir = await mkdtemp(join(tmpdir(), "harnees-trace-"));
 
     await appendTracePhase(tempDir, "2026-04-18-001", {
@@ -52,6 +52,13 @@ describe("trace-store", () => {
     expect(trace).toEqual({
       runId: "2026-04-18-001",
       phases: [
+        {
+          id: "brainstorm",
+          skills: ["superpowers:brainstorming"],
+          promptPath: ".harnees/runs/2026-04-18-001/brainstorm.prompt.md",
+          outputPath: ".harnees/runs/2026-04-18-001/brainstorm.output.md",
+          status: "running"
+        },
         {
           id: "brainstorm",
           skills: ["superpowers:brainstorming", "ecc:tdd-workflow"],

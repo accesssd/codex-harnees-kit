@@ -6,6 +6,7 @@ export type CodexRunInput = {
 export type CodexRunResult = {
   threadId: string;
   output: string;
+  rawItems?: unknown;
 };
 
 export interface CodexRunner {
@@ -24,7 +25,7 @@ type CodexSdkModule = {
 
 type CodexSdkThread = {
   id: string | null;
-  run(input: string): Promise<{ finalResponse: string }>;
+  run(input: string): Promise<{ finalResponse: string; items?: unknown }>;
 };
 
 export type CodexSdkRunnerOptions = {
@@ -62,7 +63,8 @@ export class CodexSdkRunner implements CodexRunner {
 
     return {
       threadId,
-      output: turn.finalResponse
+      output: turn.finalResponse,
+      rawItems: turn.items
     };
   }
 }

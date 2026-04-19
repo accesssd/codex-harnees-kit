@@ -68,7 +68,8 @@ describe("workflow-engine", () => {
         codexCalls.push(input);
         return {
           threadId: "thread-123",
-          output: "Brainstorm output with a useful bug summary."
+          output: "Brainstorm output with a useful bug summary.",
+          rawItems: [{ type: "tool_call", name: "shell" }]
         };
       }
     };
@@ -90,12 +91,17 @@ describe("workflow-engine", () => {
     expect(codexCalls[0].prompt).toContain("# Controller");
     expect(codexCalls[0].prompt).toContain("Fix the failing login redirect.");
 
-    await expect(
-      readTextFile(join(tempDir, ".harnees", "runs", "run-123", "brainstorm.prompt.md"))
-    ).resolves.toContain("superpowers:brainstorming");
-    await expect(
-      readTextFile(join(tempDir, ".harnees", "runs", "run-123", "brainstorm.output.md"))
-    ).resolves.toBe("Brainstorm output with a useful bug summary.");
+    const promptPath = result.artifacts.find((artifact) => artifact.endsWith(".prompt.md"));
+    const outputPath = result.artifacts.find((artifact) => artifact.endsWith(".output.md"));
+
+    expect(promptPath).toBeDefined();
+    expect(outputPath).toBeDefined();
+    await expect(readTextFile(join(tempDir, promptPath!))).resolves.toContain("superpowers:brainstorming");
+    await expect(readTextFile(join(tempDir, outputPath!))).resolves.toContain(
+      "Brainstorm output with a useful bug summary."
+    );
+    await expect(readTextFile(join(tempDir, outputPath!))).resolves.toContain("## Codex turn items");
+    await expect(readTextFile(join(tempDir, outputPath!))).resolves.toContain("\"tool_call\"");
     await expect(readTextFile(join(tempDir, "tasks", "run-123-task.md"))).resolves.toBe(
       "Brainstorm output with a useful bug summary."
     );
@@ -119,10 +125,117 @@ describe("workflow-engine", () => {
         {
           id: "brainstorm",
           skills: ["superpowers:brainstorming"],
-          promptPath: ".harnees/runs/run-123/brainstorm.prompt.md",
-          outputPath: ".harnees/runs/run-123/brainstorm.output.md",
+          promptPath,
+          outputPath,
           status: "completed"
         }
+      ]
+    });
+  });
+
+  it("persists failed phase state, trace, and artifact when Codex rejects", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "harnees-engine-"));
+    await writeTempProject(tempDir);
+
+    const codex = {
+      async run() {
+        throw new Error("boom");
+      }
+    };
+
+    const result = await runPhase({
+      cwd: tempDir,
+      runId: "run-123",
+      workflow: "bugfix",
+      workflowSource: "inferred",
+      phaseId: "brainstorm",
+      taskInput: "Fix the failing login redirect.",
+      codex
+    });
+
+    expect(result.status).toBe("failed");
+    expect(result.summary).toBe("boom");
+    expect(result.nextAction).toBe("Fix the failure and rerun this phase.");
+
+    const promptPath = result.artifacts.find((artifact) => artifact.endsWith(".prompt.md"));
+    const outputPath = result.artifacts.find((artifact) => artifact.endsWith(".output.md"));
+
+    expect(promptPath).toBeDefined();
+    expect(outputPath).toBeDefined();
+    await expect(readTextFile(join(tempDir, outputPath!))).resolves.toContain("# Phase failed");
+    await expect(readTextFile(join(tempDir, outputPath!))).resolves.toContain("boom");
+
+    await expect(
+      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "state.json"))
+    ).resolves.toMatchObject({
+      runId: "run-123",
+      status: "failed",
+      currentPhase: "brainstorm"
+    });
+    await expect(
+      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "trace.json"))
+    ).resolves.toEqual({
+      runId: "run-123",
+      phases: [
+        {
+          id: "brainstorm",
+          skills: ["superpowers:brainstorming"],
+          promptPath,
+          outputPath,
+          status: "failed"
+        }
+      ]
+    });
+  });
+
+  it("keeps separate artifacts when the same phase is rerun", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "harnees-engine-"));
+    await writeTempProject(tempDir);
+
+    let count = 0;
+    const codex = {
+      async run() {
+        count += 1;
+        return {
+          threadId: "thread-123",
+          output: `Brainstorm output ${count}.`
+        };
+      }
+    };
+
+    const first = await runPhase({
+      cwd: tempDir,
+      runId: "run-123",
+      workflow: "bugfix",
+      workflowSource: "inferred",
+      phaseId: "brainstorm",
+      taskInput: "Fix the failing login redirect.",
+      codex
+    });
+    const second = await runPhase({
+      cwd: tempDir,
+      runId: "run-123",
+      workflow: "bugfix",
+      workflowSource: "inferred",
+      phaseId: "brainstorm",
+      taskInput: "Fix the failing login redirect.",
+      codex
+    });
+
+    const firstOutputPath = first.artifacts.find((artifact) => artifact.endsWith(".output.md"));
+    const secondOutputPath = second.artifacts.find((artifact) => artifact.endsWith(".output.md"));
+
+    expect(firstOutputPath).toBeDefined();
+    expect(secondOutputPath).toBeDefined();
+    expect(firstOutputPath).not.toBe(secondOutputPath);
+    await expect(readTextFile(join(tempDir, firstOutputPath!))).resolves.toBe("Brainstorm output 1.");
+    await expect(readTextFile(join(tempDir, secondOutputPath!))).resolves.toBe("Brainstorm output 2.");
+    await expect(
+      readJsonFile(join(tempDir, ".harnees", "runs", "run-123", "trace.json"))
+    ).resolves.toMatchObject({
+      phases: [
+        { outputPath: firstOutputPath, status: "completed" },
+        { outputPath: secondOutputPath, status: "completed" }
       ]
     });
   });

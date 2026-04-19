@@ -24,9 +24,11 @@ function tracePath(cwd: string, runId: string): string {
 export function relativeArtifactPath(
   runId: string,
   phase: PhaseId,
-  kind: PhaseArtifactKind
+  kind: PhaseArtifactKind,
+  attemptId?: string
 ): string {
-  return `.harnees/runs/${runId}/${phase}.${kind}.md`;
+  const suffix = attemptId ? `.${attemptId}` : "";
+  return `.harnees/runs/${runId}/${phase}${suffix}.${kind}.md`;
 }
 
 export async function writePhaseArtifact(
@@ -34,9 +36,10 @@ export async function writePhaseArtifact(
   runId: string,
   phase: PhaseId,
   kind: PhaseArtifactKind,
-  content: string
+  content: string,
+  attemptId?: string
 ): Promise<string> {
-  const relativePath = relativeArtifactPath(runId, phase, kind);
+  const relativePath = relativeArtifactPath(runId, phase, kind, attemptId);
   await writeTextFile(join(cwd, relativePath), content);
   return relativePath;
 }
@@ -47,8 +50,7 @@ export async function appendTracePhase(
   phase: TracePhase
 ): Promise<Trace> {
   const trace = await loadTraceOrCreate(cwd, runId);
-  const phases = trace.phases.filter((item) => item.id !== phase.id);
-  const updated = { runId, phases: [...phases, phase] };
+  const updated = { runId, phases: [...trace.phases, phase] };
 
   await writeJsonFile(tracePath(cwd, runId), updated);
   return updated;
